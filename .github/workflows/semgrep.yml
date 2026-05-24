@@ -1,0 +1,47 @@
+# Semgrep SAST scan. Runs on every PR, every push to the default branch, and
+# weekly on Monday at 06:00 UTC (catches new rules landing against unchanged
+# code). Free for OSS rule packs; no Semgrep account required.
+#
+# Findings appear in the workflow log. To surface them as PR comments or in
+# the Security tab, connect the repo to Semgrep Cloud Platform (free tier).
+name: Semgrep
+
+on:
+  pull_request:
+    branches: [main, master]
+  push:
+    branches: [main, master]
+  schedule:
+    - cron: '0 6 * * 1'
+
+concurrency:
+  group: semgrep-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  semgrep:
+    name: Static analysis
+    runs-on: ubuntu-latest
+    container:
+      image: returntocorp/semgrep:latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Scan
+        run: |
+          semgrep scan \
+            --config=p/default \
+            --config=p/security-audit \
+            --config=p/secrets \
+            --config=p/owasp-top-ten \
+            --error \
+            --metrics=off \
+            --exclude='node_modules' \
+            --exclude='dist' \
+            --exclude='build' \
+            --exclude='.next' \
+            --exclude='vendor' \
+            --exclude='*.min.js'
