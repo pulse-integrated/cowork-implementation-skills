@@ -1,0 +1,12 @@
+# Dependabot version updates — Actions-only (no application package manager
+# detected in primary language). Keeps workflow action versions current.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    groups:
+      actions:
+        patterns: ["*"]
